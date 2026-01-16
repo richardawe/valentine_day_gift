@@ -203,12 +203,94 @@
         
         .heart {
             color: #ff4458;
-            animation: heartBeat 0.6s ease-in-out;
+            display: inline-block;
+            animation: heartBeat 0.6s ease-in-out infinite;
         }
         
         @keyframes heartBeat {
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.2); }
+        }
+        
+        .theme-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 10px;
+            margin: 10px 0;
+        }
+        
+        .theme-btn {
+            padding: 10px 15px;
+            border: 2px solid #e0e0e0;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95em;
+            transition: all 0.3s ease;
+        }
+        
+        .theme-btn:hover {
+            border-color: #667eea;
+            background: #f9f9f9;
+        }
+        
+        .theme-btn.active {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .download-section {
+            margin-top: 20px;
+            display: none;
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        
+        .download-section.show {
+            display: block;
+        }
+        
+        .download-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+        
+        .download-btn {
+            flex: 1;
+            min-width: 150px;
+            padding: 12px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .download-btn:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+        
+        .poem-preview {
+            margin-top: 20px;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .poem-preview img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
         }
         
         .footer {
@@ -257,6 +339,18 @@
                 ></textarea>
             </div>
             
+            <div class="form-group">
+                <label for="theme">Choose Background Theme <span class="heart">❤️</span></label>
+                <div class="theme-selector">
+                    <button type="button" class="theme-btn active" data-theme="roses" title="Red Roses">🌹 Roses</button>
+                    <button type="button" class="theme-btn" data-theme="sunset" title="Romantic Sunset">🌅 Sunset</button>
+                    <button type="button" class="theme-btn" data-theme="hearts" title="Heart Bokeh">💕 Hearts</button>
+                    <button type="button" class="theme-btn" data-theme="nature" title="Nature">🌿 Nature</button>
+                    <button type="button" class="theme-btn" data-theme="wedding" title="Wedding">💒 Wedding</button>
+                    <button type="button" class="theme-btn" data-theme="stars" title="Night Stars">⭐ Stars</button>
+                </div>
+            </div>
+            
             <div class="form-group checkbox-group">
                 <input type="checkbox" id="twitter" name="twitter" value="true">
                 <label for="twitter">Share this poem on Twitter/X 🐦</label>
@@ -273,6 +367,14 @@
         <div class="poem-display" id="poemDisplay">
             <strong>Your Generated Poem:</strong>
             <div id="poemContent" style="margin-top: 15px;"></div>
+            
+            <div class="download-section" id="downloadSection">
+                <strong>Download Your Poem:</strong>
+                <div class="download-buttons">
+                    <button type="button" class="download-btn" id="downloadPNG">⬇️ Download as Image</button>
+                    <button type="button" class="download-btn" id="downloadPDF">📄 Download as PDF</button>
+                </div>
+            </div>
         </div>
         
         <div class="footer">
@@ -288,6 +390,22 @@
         const submitBtn = document.getElementById('submitBtn');
         const poemDisplay = document.getElementById('poemDisplay');
         const poemContent = document.getElementById('poemContent');
+        const downloadSection = document.getElementById('downloadSection');
+        const downloadPNGBtn = document.getElementById('downloadPNG');
+        const downloadPDFBtn = document.getElementById('downloadPDF');
+        
+        let currentPoem = '';
+        let currentTheme = 'roses';
+        
+        // Theme selection
+        document.querySelectorAll('.theme-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentTheme = btn.dataset.theme;
+            });
+        });
         
         function showAlert(message, type) {
             alertBox.textContent = message;
@@ -297,6 +415,55 @@
                 alertBox.style.display = 'none';
             }, 5000);
         }
+        
+        // Download handlers
+        downloadPNGBtn.addEventListener('click', async () => {
+            try {
+                const response = await fetch(`/api/download-poem/png/${currentTheme}`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({poem: currentPoem})
+                });
+                
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'valentine_poem.png';
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                }
+            } catch (error) {
+                showAlert(`Download error: ${error.message}`, 'error');
+            }
+        });
+        
+        downloadPDFBtn.addEventListener('click', async () => {
+            try {
+                const response = await fetch(`/api/download-poem/pdf/${currentTheme}`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({poem: currentPoem})
+                });
+                
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'valentine_poem.pdf';
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                }
+            } catch (error) {
+                showAlert(`Download error: ${error.message}`, 'error');
+            }
+        });
         
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -315,6 +482,7 @@
             submitBtn.disabled = true;
             alertBox.style.display = 'none';
             poemDisplay.style.display = 'none';
+            downloadSection.classList.remove('show');
             
             try {
                 const response = await fetch('/api/generate-poem', {
@@ -325,6 +493,7 @@
                     body: JSON.stringify({
                         email: email,
                         prompt: prompt,
+                        theme: currentTheme,
                         share_on_twitter: shareTwitter
                     })
                 });
@@ -335,6 +504,8 @@
                 submitBtn.disabled = false;
                 
                 if (response.ok) {
+                    currentPoem = data.poem;
+                    
                     // Display success message
                     let message = data.message;
                     if (data.tweet_url) {
@@ -345,6 +516,7 @@
                     // Display the poem
                     poemContent.textContent = data.poem;
                     poemDisplay.style.display = 'block';
+                    downloadSection.classList.add('show');
                     
                     // Reset form
                     form.reset();
