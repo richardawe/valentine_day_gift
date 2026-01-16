@@ -25,17 +25,25 @@ app = Flask(__name__)
 CORS(app)
 
 # API Clients
-openai_client = OpenAI(
-    api_key=os.getenv('OPENAI_API_KEY', 'not-needed'),
-    base_url='https://api.3d7tech.com/v1'
-)
+try:
+    openai_client = OpenAI(
+        api_key=os.getenv('OPENAI_API_KEY', 'not-needed'),
+        base_url='https://api.3d7tech.com/v1'
+    )
+except Exception as e:
+    print(f"Warning: OpenAI client initialization failed: {e}")
+    openai_client = None
 
-twitter_client = tweepy.Client(
-    consumer_key=os.getenv('TWITTER_API_KEY'),
-    consumer_secret=os.getenv('TWITTER_API_SECRET'),
-    access_token=os.getenv('TWITTER_ACCESS_TOKEN'),
-    access_token_secret=os.getenv('TWITTER_ACCESS_SECRET')
-)
+try:
+    twitter_client = tweepy.Client(
+        consumer_key=os.getenv('TWITTER_API_KEY'),
+        consumer_secret=os.getenv('TWITTER_API_SECRET'),
+        access_token=os.getenv('TWITTER_ACCESS_TOKEN'),
+        access_token_secret=os.getenv('TWITTER_ACCESS_SECRET')
+    )
+except Exception as e:
+    print(f"Warning: Twitter client initialization failed: {e}")
+    twitter_client = None
 
 gmail_user = os.getenv('GMAIL_USER')
 gmail_password = os.getenv('GMAIL_APP_PASSWORD')
@@ -250,6 +258,16 @@ def post_to_twitter(poem_preview):
 def index():
     return render_template('index.html', github_url=github_pages_url)
 
+@app.route('/health', methods=['GET'])
+def health():
+    """Health check endpoint"""
+    return jsonify({
+        'status': 'ok',
+        'gmail_configured': bool(gmail_user and gmail_password),
+        'twitter_configured': bool(twitter_client is not None),
+        'openai_configured': bool(openai_client is not None)
+    }), 200
+
 @app.route('/api/generate-poem', methods=['POST'])
 def api_generate_poem():
     try:
@@ -265,12 +283,19 @@ def api_generate_poem():
         if '@' not in user_email:
             return jsonify({'error': 'Invalid email address'}), 400
         
+        # Check if required environment variables are set
+        if not gmail_user or not gmail_password:
+            return jsonify({'error': 'Email service not configured on server'}), 503
+        
         poem = generate_poem(poem_prompt)
+        
+        if not poem:
+            return jsonify({'error': 'Failed to generate poem'}), 500
         
         email_sent = send_email_with_poem(user_email, poem, theme)
         
         if not email_sent:
-            return jsonify({'error': 'Failed to send email'}), 500
+            return jsonify({'error': 'Failed to send email. Check server logs.'}), 500
         
         response_data = {
             'success': True,
@@ -279,16 +304,23 @@ def api_generate_poem():
             'theme': theme
         }
         
-        if share_on_twitter:
-            tweet_url = post_to_twitter(poem_prompt)
-            if tweet_url:
-                response_data['tweet_url'] = tweet_url
-                response_data['message'] += f"\n\nAlso posted to Twitter: {tweet_url}"
+        if share_on_twitter and twitter_client:
+            try:
+                tweet_url = post_to_twitter(poem_prompt)
+                if tweet_url:
+                    response_data['tweet_url'] = tweet_url
+                    response_data['message'] += f"\n\nAlso posted to Twitter: {tweet_url}"
+            except Exception as tweet_error:
+                print(f"Tweet posting error: {tweet_error}")
+                # Don't fail the whole request if tweeting fails
         
         return jsonify(response_data), 200
     
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        print(f"API Error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': f'Server error: {str(e)}'}), 500
 
 @app.route('/api/download-poem/<format>/<theme>', methods=['POST'])
 def api_download_poem(format, theme):
