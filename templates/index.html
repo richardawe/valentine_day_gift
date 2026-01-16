@@ -384,151 +384,161 @@
     </div>
     
     <script>
-        const form = document.getElementById('poemForm');
-        const alertBox = document.getElementById('alertBox');
-        const loading = document.getElementById('loading');
-        const submitBtn = document.getElementById('submitBtn');
-        const poemDisplay = document.getElementById('poemDisplay');
-        const poemContent = document.getElementById('poemContent');
-        const downloadSection = document.getElementById('downloadSection');
-        const downloadPNGBtn = document.getElementById('downloadPNG');
-        const downloadPDFBtn = document.getElementById('downloadPDF');
-        
-        let currentPoem = '';
-        let currentTheme = 'roses';
-        
-        // Theme selection
-        document.querySelectorAll('.theme-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                currentTheme = btn.dataset.theme;
-            });
-        });
-        
-        function showAlert(message, type) {
-            alertBox.textContent = message;
-            alertBox.className = `alert ${type}`;
-            alertBox.style.display = 'block';
-            setTimeout(() => {
-                alertBox.style.display = 'none';
-            }, 5000);
-        }
-        
-        // Download handlers
-        downloadPNGBtn.addEventListener('click', async () => {
-            try {
-                const response = await fetch(`/api/download-poem/png/${currentTheme}`, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({poem: currentPoem})
-                });
-                
-                if (response.ok) {
-                    const blob = await response.blob();
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = 'valentine_poem.png';
-                    document.body.appendChild(a);
-                    a.click();
-                    window.URL.revokeObjectURL(url);
-                    document.body.removeChild(a);
-                }
-            } catch (error) {
-                showAlert(`Download error: ${error.message}`, 'error');
-            }
-        });
-        
-        downloadPDFBtn.addEventListener('click', async () => {
-            try {
-                const response = await fetch(`/api/download-poem/pdf/${currentTheme}`, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({poem: currentPoem})
-                });
-                
-                if (response.ok) {
-                    const blob = await response.blob();
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = 'valentine_poem.pdf';
-                    document.body.appendChild(a);
-                    a.click();
-                    window.URL.revokeObjectURL(url);
-                    document.body.removeChild(a);
-                }
-            } catch (error) {
-                showAlert(`Download error: ${error.message}`, 'error');
-            }
-        });
-        
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
+        // Wait for DOM to be ready
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('poemForm');
+            const alertBox = document.getElementById('alertBox');
+            const loading = document.getElementById('loading');
+            const submitBtn = document.getElementById('submitBtn');
+            const poemDisplay = document.getElementById('poemDisplay');
+            const poemContent = document.getElementById('poemContent');
+            const downloadSection = document.getElementById('downloadSection');
+            const downloadPNGBtn = document.getElementById('downloadPNG');
+            const downloadPDFBtn = document.getElementById('downloadPDF');
             
-            const email = document.getElementById('email').value.trim();
-            const prompt = document.getElementById('prompt').value.trim();
-            const shareTwitter = document.getElementById('twitter').checked;
-            
-            if (!email || !prompt) {
-                showAlert('Please fill in all fields', 'error');
+            // Check if all elements exist
+            if (!form || !alertBox || !loading || !submitBtn) {
+                console.error('Critical elements missing from DOM');
                 return;
             }
             
-            // Show loading
-            loading.style.display = 'block';
-            submitBtn.disabled = true;
-            alertBox.style.display = 'none';
-            poemDisplay.style.display = 'none';
-            downloadSection.classList.remove('show');
+            let currentPoem = '';
+            let currentTheme = 'roses';
             
-            try {
-                const response = await fetch('/api/generate-poem', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        email: email,
-                        prompt: prompt,
-                        theme: currentTheme,
-                        share_on_twitter: shareTwitter
-                    })
+            // Theme selection
+            document.querySelectorAll('.theme-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentTheme = btn.dataset.theme;
                 });
-                
-                const data = await response.json();
-                
-                loading.style.display = 'none';
-                submitBtn.disabled = false;
-                
-                if (response.ok) {
-                    currentPoem = data.poem;
-                    
-                    // Display success message
-                    let message = data.message;
-                    if (data.tweet_url) {
-                        message += `\n\n✅ Tweet posted: ${data.tweet_url}`;
-                    }
-                    showAlert(message, 'success');
-                    
-                    // Display the poem
-                    poemContent.textContent = data.poem;
-                    poemDisplay.style.display = 'block';
-                    downloadSection.classList.add('show');
-                    
-                    // Reset form
-                    form.reset();
-                } else {
-                    showAlert(`Error: ${data.error}`, 'error');
-                }
-            } catch (error) {
-                loading.style.display = 'none';
-                submitBtn.disabled = false;
-                showAlert(`Error: ${error.message}`, 'error');
+            });
+            
+            function showAlert(message, type) {
+                alertBox.textContent = message;
+                alertBox.className = `alert ${type}`;
+                alertBox.style.display = 'block';
+                setTimeout(() => {
+                    alertBox.style.display = 'none';
+                }, 5000);
             }
-        });
+            
+            // Download handlers
+            downloadPNGBtn.addEventListener('click', async () => {
+                try {
+                    const response = await fetch(`/api/download-poem/png/${currentTheme}`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({poem: currentPoem})
+                    });
+                    
+                    if (response.ok) {
+                        const blob = await response.blob();
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = 'valentine_poem.png';
+                        document.body.appendChild(a);
+                        a.click();
+                        window.URL.revokeObjectURL(url);
+                        document.body.removeChild(a);
+                    }
+                } catch (error) {
+                    showAlert(`Download error: ${error.message}`, 'error');
+                }
+            });
+            
+            downloadPDFBtn.addEventListener('click', async () => {
+                try {
+                    const response = await fetch(`/api/download-poem/pdf/${currentTheme}`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({poem: currentPoem})
+                    });
+                    
+                    if (response.ok) {
+                        const blob = await response.blob();
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = 'valentine_poem.pdf';
+                        document.body.appendChild(a);
+                        a.click();
+                        window.URL.revokeObjectURL(url);
+                        document.body.removeChild(a);
+                    }
+                } catch (error) {
+                    showAlert(`Download error: ${error.message}`, 'error');
+                }
+            });
+            
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const email = document.getElementById('email').value.trim();
+                const prompt = document.getElementById('prompt').value.trim();
+                const shareTwitter = document.getElementById('twitter').checked;
+                
+                if (!email || !prompt) {
+                    showAlert('Please fill in all fields', 'error');
+                    return;
+                }
+                
+                // Show loading
+                loading.style.display = 'block';
+                submitBtn.disabled = true;
+                alertBox.style.display = 'none';
+                poemDisplay.style.display = 'none';
+                downloadSection.classList.remove('show');
+                
+                try {
+                    const response = await fetch('/api/generate-poem', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            email: email,
+                            prompt: prompt,
+                            theme: currentTheme,
+                            share_on_twitter: shareTwitter
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    loading.style.display = 'none';
+                    submitBtn.disabled = false;
+                    
+                    if (response.ok) {
+                        currentPoem = data.poem;
+                        
+                        // Display success message
+                        let message = data.message;
+                        if (data.tweet_url) {
+                            message += `\n\n✅ Tweet posted: ${data.tweet_url}`;
+                        }
+                        showAlert(message, 'success');
+                        
+                        // Display the poem
+                        poemContent.textContent = data.poem;
+                        poemDisplay.style.display = 'block';
+                        downloadSection.classList.add('show');
+                        
+                        // Reset form
+                        form.reset();
+                    } else {
+                        showAlert(`Error: ${data.error}`, 'error');
+                    }
+                } catch (error) {
+                    loading.style.display = 'none';
+                    submitBtn.disabled = false;
+                    showAlert(`Error: ${error.message}`, 'error');
+                }
+            });
+        
+        });  // Close DOMContentLoaded
     </script>
 </body>
 </html>
