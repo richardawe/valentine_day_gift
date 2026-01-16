@@ -1,0 +1,13 @@
+.git
+.gitignore
+__pycache__
+.venv
+venv
+*.pyc
+.DS_Store
+*.egg-info
+.pytest_cache
+.env.local
+product.pdf
+temp_poem.pdf
+tweets_log.json
