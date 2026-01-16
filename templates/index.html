@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Valentine's Poem Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 50px 40px;
+            animation: slideIn 0.5s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        h1 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .subtitle {
+            color: #666;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 1em;
+        }
+        
+        input[type="email"],
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+        
+        input[type="email"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        
+        .checkbox-group label {
+            margin-bottom: 0;
+            cursor: pointer;
+        }
+        
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            color: #667eea;
+            font-weight: 600;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        .alert.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .poem-display {
+            background: #f9f9f9;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            white-space: pre-wrap;
+            font-family: 'Georgia', serif;
+            color: #333;
+            display: none;
+        }
+        
+        .tweet-link {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .tweet-link:hover {
+            text-decoration: underline;
+        }
+        
+        .heart {
+            color: #ff4458;
+            animation: heartBeat 0.6s ease-in-out;
+        }
+        
+        @keyframes heartBeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #999;
+            font-size: 0.9em;
+        }
+        
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        .footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💝 AI Valentine's Poem Generator</h1>
+        <p class="subtitle">Create a personalized love poem and receive it via email!</p>
+        
+        <div id="alertBox" class="alert"></div>
+        
+        <form id="poemForm">
+            <div class="form-group">
+                <label for="email">Your Email <span class="heart">❤️</span></label>
+                <input 
+                    type="email" 
+                    id="email" 
+                    name="email" 
+                    placeholder="your@email.com"
+                    required
+                >
+            </div>
+            
+            <div class="form-group">
+                <label for="prompt">Your Love Story or Poem Idea <span class="heart">❤️</span></label>
+                <textarea 
+                    id="prompt" 
+                    name="prompt" 
+                    placeholder="Describe your love story, special moments, or what you'd like the poem to include..."
+                    required
+                ></textarea>
+            </div>
+            
+            <div class="form-group checkbox-group">
+                <input type="checkbox" id="twitter" name="twitter" value="true">
+                <label for="twitter">Share this poem on Twitter/X 🐦</label>
+            </div>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Creating your magical poem... ✨</p>
+            </div>
+            
+            <button type="submit" id="submitBtn">Generate & Send Poem 💌</button>
+        </form>
+        
+        <div class="poem-display" id="poemDisplay">
+            <strong>Your Generated Poem:</strong>
+            <div id="poemContent" style="margin-top: 15px;"></div>
+        </div>
+        
+        <div class="footer">
+            <p>Made with <span class="heart" style="display: inline;">❤️</span> by AI Valentine's Team</p>
+            <p><a href="https://github.com/richardawe/valentine_day_gift" target="_blank">View on GitHub</a></p>
+        </div>
+    </div>
+    
+    <script>
+        const form = document.getElementById('poemForm');
+        const alertBox = document.getElementById('alertBox');
+        const loading = document.getElementById('loading');
+        const submitBtn = document.getElementById('submitBtn');
+        const poemDisplay = document.getElementById('poemDisplay');
+        const poemContent = document.getElementById('poemContent');
+        
+        function showAlert(message, type) {
+            alertBox.textContent = message;
+            alertBox.className = `alert ${type}`;
+            alertBox.style.display = 'block';
+            setTimeout(() => {
+                alertBox.style.display = 'none';
+            }, 5000);
+        }
+        
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value.trim();
+            const prompt = document.getElementById('prompt').value.trim();
+            const shareTwitter = document.getElementById('twitter').checked;
+            
+            if (!email || !prompt) {
+                showAlert('Please fill in all fields', 'error');
+                return;
+            }
+            
+            // Show loading
+            loading.style.display = 'block';
+            submitBtn.disabled = true;
+            alertBox.style.display = 'none';
+            poemDisplay.style.display = 'none';
+            
+            try {
+                const response = await fetch('/api/generate-poem', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        prompt: prompt,
+                        share_on_twitter: shareTwitter
+                    })
+                });
+                
+                const data = await response.json();
+                
+                loading.style.display = 'none';
+                submitBtn.disabled = false;
+                
+                if (response.ok) {
+                    // Display success message
+                    let message = data.message;
+                    if (data.tweet_url) {
+                        message += `\n\n✅ Tweet posted: ${data.tweet_url}`;
+                    }
+                    showAlert(message, 'success');
+                    
+                    // Display the poem
+                    poemContent.textContent = data.poem;
+                    poemDisplay.style.display = 'block';
+                    
+                    // Reset form
+                    form.reset();
+                } else {
+                    showAlert(`Error: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                loading.style.display = 'none';
+                submitBtn.disabled = false;
+                showAlert(`Error: ${error.message}`, 'error');
+            }
+        });
+    </script>
+</body>
+</html>

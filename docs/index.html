@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Valentine's Poem Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 700px;
+            width: 100%;
+            padding: 50px 40px;
+            animation: slideIn 0.5s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        h1 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .subtitle {
+            color: #666;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        
+        .feature-list {
+            list-style: none;
+            margin: 30px 0;
+        }
+        
+        .feature-list li {
+            padding: 12px 0;
+            color: #333;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .feature-list li:before {
+            content: "✨";
+            font-size: 1.3em;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 40px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            margin: 30px auto;
+            display: block;
+            text-align: center;
+            transition: all 0.3s ease;
+            font-size: 1.1em;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .info-box {
+            background: #f9f9f9;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .info-box h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            color: #999;
+            font-size: 0.9em;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+        
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        .footer a:hover {
+            text-decoration: underline;
+        }
+        
+        .heart {
+            color: #ff4458;
+            display: inline-block;
+            animation: heartBeat 0.6s ease-in-out infinite;
+        }
+        
+        @keyframes heartBeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💝 AI Valentine's Poem Generator</h1>
+        <p class="subtitle">Express your love with AI-generated personalized poems</p>
+        
+        <ul class="feature-list">
+            <li>Create personalized romantic poems</li>
+            <li>Receive beautiful PDF poems via email</li>
+            <li>Share your poems on social media</li>
+            <li>Powered by advanced AI technology</li>
+            <li>Free to use for Valentine's Day</li>
+        </ul>
+        
+        <div class="info-box">
+            <h3>🚀 How It Works:</h3>
+            <p>
+                1. Fill in your email address<br>
+                2. Describe your love story or poem idea<br>
+                3. (Optional) Share on Twitter/X<br>
+                4. Receive your personalized poem via email!
+            </p>
+        </div>
+        
+        <a href="http://localhost:5000" class="cta-button">Create Your Poem Now <span class="heart">❤️</span></a>
+        
+        <div class="info-box">
+            <h3>💬 About This Project:</h3>
+            <p>
+                This AI Valentine's Day gift generator uses state-of-the-art language models to create unique, personalized love poems. Whether you're celebrating Valentine's Day, an anniversary, or just want to express your feelings in a special way, we've got you covered!
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p>Made with <span class="heart">❤️</span> by the AI Valentine's Team</p>
+            <p><a href="https://github.com/richardawe/valentine_day_gift" target="_blank">View Source on GitHub</a></p>
+            <p style="margin-top: 10px; font-size: 0.8em;">Visit the live application to create your poem!</p>
+        </div>
+    </div>
+</body>
+</html>
