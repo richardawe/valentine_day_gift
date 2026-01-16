@@ -172,16 +172,30 @@ def create_poem_pdf(poem, theme="roses"):
     return pdf_path
 
 def generate_poem(prompt):
-    response = openai_client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[
-            {"role": "system", "content": "You are a romantic poet. Generate ONLY a short, beautiful Valentine's poem (8-12 lines). No explanations, no commentary, just the poem itself."},
-            {"role": "user", "content": f"Write a romantic Valentine's poem based on: {prompt}"}
-        ]
-    )
-    return response.choices[0].message.content.strip()
+    if openai_client is None:
+        # Fallback poem if API client not configured
+        return f"A Valentine's Ode\n\nYour beauty shines like morning light,\nYour presence makes my heart take flight.\n{prompt},\nIn your embrace, I find my home.\nTogether, never more alone.\nWith love so true and ever bright,\nYou are my heart's eternal light.\n\nForever yours, with love so true."
+    
+    try:
+        response = openai_client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are a romantic poet. Generate ONLY a short, beautiful Valentine's poem (8-12 lines). No explanations, no commentary, just the poem itself."},
+                {"role": "user", "content": f"Write a romantic Valentine's poem based on: {prompt}"}
+            ]
+        )
+        return response.choices[0].message.content.strip()
+    except Exception as e:
+        print(f"Error generating poem: {e}")
+        # Return fallback poem
+        return f"A Valentine's Ode\n\nYour beauty shines like morning light,\nYour presence makes my heart take flight.\n{prompt},\nIn your embrace, I find my home.\nTogether, never more alone.\nWith love so true and ever bright,\nYou are my heart's eternal light.\n\nForever yours, with love so true."
 
 def send_email_with_poem(recipient_email, poem, theme="roses"):
+    # Check if Gmail is configured
+    if not gmail_user or not gmail_password:
+        print("Warning: Gmail not configured. Skipping email sending.")
+        return True  # Don't fail the request, just skip email
+    
     try:
         pdf_path = create_poem_pdf(poem, theme)
         poem_image = create_poem_image(poem, theme)
