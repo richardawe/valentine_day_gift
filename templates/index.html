@@ -313,18 +313,18 @@
 <body>
     <div class="container">
         <h1>💝 AI Valentine's Poem Generator</h1>
-        <p class="subtitle">Create a personalized love poem and receive it via email!</p>
+        <p class="subtitle">Create a personalized love poem and tag it with your Twitter/X handle!</p>
         
         <div id="alertBox" class="alert"></div>
         
         <form id="poemForm">
             <div class="form-group">
-                <label for="email">Your Email <span class="heart">❤️</span></label>
+                <label for="twitter_handle">Your Twitter/X Handle <span class="heart">❤️</span></label>
                 <input 
-                    type="email" 
-                    id="email" 
-                    name="email" 
-                    placeholder="your@email.com"
+                    type="text" 
+                    id="twitter_handle" 
+                    name="twitter_handle" 
+                    placeholder="@yourhandle"
                     required
                 >
             </div>
@@ -352,8 +352,8 @@
             </div>
             
             <div class="form-group checkbox-group">
-                <input type="checkbox" id="twitter" name="twitter" value="true">
-                <label for="twitter">Share this poem on Twitter/X 🐦</label>
+                <input type="checkbox" id="share_twitter" name="share_twitter" value="true" checked>
+                <label for="share_twitter">Share this poem on Twitter/X 🐦</label>
             </div>
             
             <div class="loading" id="loading">
@@ -361,7 +361,7 @@
                 <p>Creating your magical poem... ✨</p>
             </div>
             
-            <button type="submit" id="submitBtn">Generate & Send Poem 💌</button>
+            <button type="submit" id="submitBtn">Generate & Tag Poem 💌</button>
         </form>
         
         <div class="poem-display" id="poemDisplay">
@@ -476,11 +476,11 @@
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 
-                const email = document.getElementById('email').value.trim();
+                const twitterHandle = document.getElementById('twitter_handle').value.trim();
                 const prompt = document.getElementById('prompt').value.trim();
-                const shareTwitter = document.getElementById('twitter').checked;
+                const shareTwitter = document.getElementById('share_twitter').checked;
                 
-                if (!email || !prompt) {
+                if (!twitterHandle || !prompt) {
                     showAlert('Please fill in all fields', 'error');
                     return;
                 }
@@ -499,7 +499,7 @@
                             'Content-Type': 'application/json',
                         },
                         body: JSON.stringify({
-                            email: email,
+                            twitter_handle: twitterHandle,
                             prompt: prompt,
                             theme: currentTheme,
                             share_on_twitter: shareTwitter

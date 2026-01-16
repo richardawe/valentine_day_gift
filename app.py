@@ -2,11 +2,6 @@ from flask import Flask, render_template, request, jsonify, send_file
 from flask_cors import CORS
 import os
 from dotenv import load_dotenv
-import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.base import MIMEBase
-from email.mime.text import MIMEText
-from email import encoders
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from openai import OpenAI
@@ -45,22 +40,20 @@ except Exception as e:
     print(f"Warning: Twitter client initialization failed: {e}")
     twitter_client = None
 
-gmail_user = os.getenv('GMAIL_USER')
-gmail_password = os.getenv('GMAIL_APP_PASSWORD')
 github_pages_url = "https://richardawe.github.io/valentine_day_gift/"
 
-# Unsplash API for backgrounds
-UNSPLASH_API_KEY = "c8_5R0M4ePKN5g-tH0hLMkLlZZTIhX_Y06m2ujfMr7w"
-UNSPLASH_API_URL = "https://api.unsplash.com/search/photos"
+# Unsplash API for backgrounds - REMOVED, using local images instead
+# UNSPLASH_API_KEY = "c8_5R0M4ePKN5g-tH0hLMkLlZZTIhX_Y06m2ujfMr7w"
+# UNSPLASH_API_URL = "https://api.unsplash.com/search/photos"
 
-# Background themes
+# Background themes with local image paths
 BACKGROUND_THEMES = {
-    "roses": {"query": "red roses love", "color": "#ff6b6b"},
-    "sunset": {"query": "romantic sunset love", "color": "#ff9f43"},
-    "hearts": {"query": "heart bokeh romantic", "color": "#ff69b4"},
-    "nature": {"query": "nature love romantic", "color": "#2ecc71"},
-    "wedding": {"query": "wedding couple romance", "color": "#c39bd3"},
-    "stars": {"query": "night stars romantic", "color": "#3498db"},
+    "roses": {"image": "static/backgrounds/roses_2.jpg", "color": "#ff6b6b"},
+    "sunset": {"image": "static/backgrounds/roses_1.jpg", "color": "#ff9f43"},
+    "hearts": {"image": "static/backgrounds/heart_bokeh.jpg", "color": "#ff69b4"},
+    "nature": {"image": "static/backgrounds/pink_flower.jpg", "color": "#2ecc71"},
+    "wedding": {"image": "static/backgrounds/hearts_sparklers.jpg", "color": "#c39bd3"},
+    "stars": {"image": "static/backgrounds/heart_bokeh.jpg", "color": "#3498db"},
 }
 
 TWEETS_LOG = "tweets_log.json"
@@ -77,25 +70,18 @@ def save_tweets_log(tweets):
         json.dump(tweets, f, indent=2)
 
 def get_background_image(theme="roses"):
+    """Load background image from local files"""
     try:
         theme_data = BACKGROUND_THEMES.get(theme, BACKGROUND_THEMES["roses"])
-        params = {
-            "query": theme_data["query"],
-            "per_page": 1,
-            "client_id": UNSPLASH_API_KEY
-        }
-        # Add timeout to prevent hanging
-        response = requests.get(UNSPLASH_API_URL, params=params, timeout=5)
-        if response.status_code == 200:
-            data = response.json()
-            if data["results"]:
-                image_url = data["results"][0]["urls"]["regular"]
-                img_response = requests.get(image_url, timeout=5)
-                return Image.open(BytesIO(img_response.content))
+        image_path = theme_data["image"]
+        
+        # Check if file exists
+        if os.path.exists(image_path):
+            return Image.open(image_path).convert('RGB')
     except Exception as e:
-        print(f"Error fetching background: {e}")
+        print(f"Error loading background image: {e}")
     
-    # Fallback to solid color if Unsplash fails
+    # Fallback to solid color if image loading fails
     theme_data = BACKGROUND_THEMES.get(theme, BACKGROUND_THEMES["roses"])
     img = Image.new('RGB', (1200, 1600), theme_data["color"])
     return img
@@ -173,80 +159,34 @@ def create_poem_pdf(poem, theme="roses"):
     c.save()
     return pdf_path
 
-def generate_poem(prompt):
+def generate_poem(prompt, twitter_handle=None):
     if openai_client is None:
         # Fallback poem if API client not configured
-        return f"A Valentine's Ode\n\nYour beauty shines like morning light,\nYour presence makes my heart take flight.\n{prompt},\nIn your embrace, I find my home.\nTogether, never more alone.\nWith love so true and ever bright,\nYou are my heart's eternal light.\n\nForever yours, with love so true."
+        poem = f"A Valentine's Ode\n\nYour beauty shines like morning light,\nYour presence makes my heart take flight.\n{prompt},\nIn your embrace, I find my home.\nTogether, never more alone.\nWith love so true and ever bright,\nYou are my heart's eternal light.\n\nForever yours, with love so true."
+    else:
+        try:
+            response = openai_client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "You are a romantic poet. Generate ONLY a short, beautiful Valentine's poem (8-12 lines). No explanations, no commentary, just the poem itself."},
+                    {"role": "user", "content": f"Write a romantic Valentine's poem based on: {prompt}"}
+                ]
+            )
+            poem = response.choices[0].message.content.strip()
+        except Exception as e:
+            print(f"Error generating poem: {e}")
+            # Return fallback poem
+            poem = f"A Valentine's Ode\n\nYour beauty shines like morning light,\nYour presence makes my heart take flight.\n{prompt},\nIn your embrace, I find my home.\nTogether, never more alone.\nWith love so true and ever bright,\nYou are my heart's eternal light.\n\nForever yours, with love so true."
     
-    try:
-        response = openai_client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "You are a romantic poet. Generate ONLY a short, beautiful Valentine's poem (8-12 lines). No explanations, no commentary, just the poem itself."},
-                {"role": "user", "content": f"Write a romantic Valentine's poem based on: {prompt}"}
-            ]
-        )
-        return response.choices[0].message.content.strip()
-    except Exception as e:
-        print(f"Error generating poem: {e}")
-        # Return fallback poem
-        return f"A Valentine's Ode\n\nYour beauty shines like morning light,\nYour presence makes my heart take flight.\n{prompt},\nIn your embrace, I find my home.\nTogether, never more alone.\nWith love so true and ever bright,\nYou are my heart's eternal light.\n\nForever yours, with love so true."
-
-def send_email_with_poem(recipient_email, poem, theme="roses"):
-    # Check if Gmail is configured
-    if not gmail_user or not gmail_password:
-        print("Warning: Gmail not configured. Skipping email sending.")
-        return True  # Don't fail the request, just skip email
+    # Add Twitter handle tag at the end if provided
+    if twitter_handle:
+        # Clean up the handle
+        handle = twitter_handle.strip()
+        if not handle.startswith('@'):
+            handle = '@' + handle
+        poem = poem + f"\n\n- {handle}"
     
-    try:
-        pdf_path = create_poem_pdf(poem, theme)
-        poem_image = create_poem_image(poem, theme)
-        
-        img_bytes = BytesIO()
-        poem_image.save(img_bytes, format='PNG')
-        img_bytes.seek(0)
-        
-        msg = MIMEMultipart()
-        msg['From'] = gmail_user
-        msg['To'] = recipient_email
-        msg['Subject'] = "Your AI-Generated Valentine's Poem 💝"
-        
-        body = f"""Hello,
-
-Your personalized AI-generated Valentine's poem has been created with love!
-
-Check out our Valentine's AI at: {github_pages_url}
-
-With love,
-The AI Valentine's Team 💕
-"""
-        msg.attach(MIMEText(body, 'plain'))
-        
-        with open(pdf_path, 'rb') as attachment:
-            part = MIMEBase('application', 'octet-stream')
-            part.set_payload(attachment.read())
-        
-        encoders.encode_base64(part)
-        part.add_header('Content-Disposition', 'attachment', filename='valentine_poem.pdf')
-        msg.attach(part)
-        
-        img_part = MIMEBase('image', 'png')
-        img_part.set_payload(img_bytes.getvalue())
-        encoders.encode_base64(img_part)
-        img_part.add_header('Content-Disposition', 'attachment', filename='valentine_poem.png')
-        msg.attach(img_part)
-        
-        server = smtplib.SMTP_SSL('smtp.gmail.com', 465, timeout=10)
-        server.login(gmail_user, gmail_password)
-        server.send_message(msg)
-        server.quit()
-        
-        os.remove(pdf_path)
-        
-        return True
-    except Exception as e:
-        print(f"Error sending email: {str(e)}")
-        return False
+    return poem
 
 def post_to_twitter(poem_preview):
     try:
@@ -279,7 +219,6 @@ def health():
     """Health check endpoint"""
     return jsonify({
         'status': 'ok',
-        'gmail_configured': bool(gmail_user and gmail_password),
         'twitter_configured': bool(twitter_client is not None),
         'openai_configured': bool(openai_client is not None)
     }), 200
@@ -288,49 +227,30 @@ def health():
 def api_generate_poem():
     try:
         data = request.json
-        user_email = data.get('email', '').strip()
+        twitter_handle = data.get('twitter_handle', '').strip()
         poem_prompt = data.get('prompt', '').strip()
         theme = data.get('theme', 'roses')
         share_on_twitter = data.get('share_on_twitter', False)
         
-        if not user_email or not poem_prompt:
-            return jsonify({'error': 'Email and prompt are required'}), 400
+        if not twitter_handle or not poem_prompt:
+            return jsonify({'error': 'Twitter handle and prompt are required'}), 400
         
-        if '@' not in user_email:
-            return jsonify({'error': 'Invalid email address'}), 400
+        # Validate Twitter handle format (should start with @ or be alphanumeric)
+        if not twitter_handle.replace('@', '').replace('_', '').isalnum():
+            return jsonify({'error': 'Invalid Twitter handle format'}), 400
         
-        # Generate poem first (fastest operation)
-        poem = generate_poem(poem_prompt)
+        # Generate poem with Twitter handle tag
+        poem = generate_poem(poem_prompt, twitter_handle)
         
         if not poem:
             return jsonify({'error': 'Failed to generate poem'}), 500
         
-        # Try to send email, but don't fail if it's slow
-        email_sent = False
-        email_error = None
-        
-        if gmail_user and gmail_password:
-            try:
-                email_sent = send_email_with_poem(user_email, poem, theme)
-            except Exception as e:
-                email_error = str(e)
-                print(f"Email sending error (non-blocking): {e}")
-                # Don't fail the request, just log the error
-        else:
-            print("Gmail not configured, skipping email")
-        
         response_data = {
             'success': True,
-            'message': f'Poem generated!',
+            'message': f'Poem generated and tagged with {twitter_handle}!',
             'poem': poem,
             'theme': theme
         }
-        
-        # Add email status to response
-        if email_sent:
-            response_data['message'] += f' Sent to {user_email}!'
-        elif gmail_user and gmail_password:
-            response_data['message'] += ' (Email delivery pending)'
         
         # Try to post to Twitter (optional)
         if share_on_twitter and twitter_client:

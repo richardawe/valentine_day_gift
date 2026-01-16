@@ -6,11 +6,6 @@ from openai import OpenAI
 import tweepy
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
-import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.base import MIMEBase
-from email.mime.text import MIMEText
-from email import encoders
 
 # Load environment variables
 load_dotenv()
@@ -26,9 +21,6 @@ twitter_client = tweepy.Client(
     access_token=os.getenv('TWITTER_ACCESS_TOKEN'),
     access_token_secret=os.getenv('TWITTER_ACCESS_SECRET')
 )
-gmail_user = os.getenv('GMAIL_USER')
-gmail_password = os.getenv('GMAIL_APP_PASSWORD')
-test_email = os.getenv('TEST_EMAIL')
 
 def get_trends():
     """Fetch current trends using Google Trends API (public/free)."""
@@ -122,37 +114,6 @@ def create_product(product_idea):
     c.save()
     return pdf_path, poem
 
-def send_product(email, pdf_path):
-    """Send the product via email using Gmail SMTP."""
-    try:
-        # Create email message
-        msg = MIMEMultipart()
-        msg['From'] = gmail_user
-        msg['To'] = email
-        msg['Subject'] = "Your Free AI-Generated Valentine's Product"
-        
-        # Email body
-        body = 'Enjoy your free test product! Attached is your custom AI-generated gift.'
-        msg.attach(MIMEText(body, 'plain'))
-        
-        # Attach PDF
-        with open(pdf_path, 'rb') as attachment:
-            part = MIMEBase('application', 'octet-stream')
-            part.set_payload(attachment.read())
-        
-        encoders.encode_base64(part)
-        part.add_header('Content-Disposition', 'attachment', filename='valentines_gift.pdf')
-        msg.attach(part)
-        
-        # Send via Gmail
-        server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
-        server.login(gmail_user, gmail_password)
-        server.send_message(msg)
-        server.quit()
-        return f"Sent to {email}. Status: Success"
-    except Exception as e:
-        return f"Error sending: {str(e)}"
-
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Usage: python ai_entrepreneur_mvp.py 'Your prompt here'")
@@ -177,11 +138,7 @@ if __name__ == "__main__":
     pdf_path, poem = create_product(product_idea)
     print(f"Product created: {poem}")
     
-    # Step 5: Send
-    send_result = send_product(test_email, pdf_path)
-    print(send_result)
-    
     # Clean up
     # os.remove(pdf_path)  # Commented out for testing - PDF saved as product.pdf
-    print("MVP run complete. Check X for engagement and your email for the product.")
+    print("MVP run complete. Check X for engagement.")
     print(f"PDF saved at: {pdf_path}")
