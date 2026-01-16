@@ -12,7 +12,7 @@
         }
         
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
@@ -23,11 +23,11 @@
         
         .container {
             background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            max-width: 600px;
+            border-radius: 24px;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.25);
+            max-width: 700px;
             width: 100%;
-            padding: 50px 40px;
+            padding: 60px 45px;
             animation: slideIn 0.5s ease-out;
         }
         
@@ -44,46 +44,51 @@
         
         h1 {
             color: #667eea;
-            font-size: 2.5em;
-            margin-bottom: 10px;
+            font-size: 2.8em;
+            margin-bottom: 8px;
             text-align: center;
+            font-weight: 700;
+            letter-spacing: -0.5px;
         }
         
         .subtitle {
             color: #666;
             text-align: center;
-            margin-bottom: 30px;
-            font-size: 1.1em;
+            margin-bottom: 40px;
+            font-size: 1em;
+            line-height: 1.5;
         }
         
         .form-group {
-            margin-bottom: 25px;
+            margin-bottom: 28px;
         }
         
         label {
             display: block;
-            color: #333;
+            color: #222;
             font-weight: 600;
-            margin-bottom: 8px;
-            font-size: 1em;
+            margin-bottom: 10px;
+            font-size: 0.95em;
         }
         
-        input[type="email"],
+        input[type="text"],
         textarea {
             width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
+            padding: 14px 16px;
+            border: 2px solid #e8e8e8;
+            border-radius: 12px;
             font-size: 1em;
             font-family: inherit;
             transition: all 0.3s ease;
+            background: #fafafa;
         }
         
-        input[type="email"]:focus,
+        input[type="text"]:focus,
         textarea:focus {
             outline: none;
             border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.08);
         }
         
         textarea {
@@ -110,21 +115,22 @@
         
         button {
             width: 100%;
-            padding: 14px;
+            padding: 16px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            border-radius: 8px;
-            font-size: 1.1em;
-            font-weight: 600;
+            border-radius: 12px;
+            font-size: 1.05em;
+            font-weight: 700;
             cursor: pointer;
             transition: all 0.3s ease;
-            margin-top: 10px;
+            margin-top: 15px;
+            letter-spacing: 0.3px;
         }
         
         button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
         }
         
         button:active {
@@ -180,15 +186,18 @@
         }
         
         .poem-display {
-            background: #f9f9f9;
-            border-left: 4px solid #667eea;
-            padding: 20px;
-            border-radius: 8px;
-            margin: 20px 0;
+            background: linear-gradient(135deg, #f5f7ff 0%, #f9f5ff 100%);
+            border-left: 5px solid #667eea;
+            padding: 28px;
+            border-radius: 12px;
+            margin: 25px 0;
             white-space: pre-wrap;
-            font-family: 'Georgia', serif;
-            color: #333;
+            font-family: 'Georgia', 'Segoe UI', serif;
+            color: #222;
             display: none;
+            line-height: 1.8;
+            font-size: 1.05em;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.08);
         }
         
         .tweet-link {
@@ -214,38 +223,98 @@
         
         .theme-selector {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-            gap: 10px;
-            margin: 10px 0;
+            grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+            gap: 12px;
+            margin: 15px 0;
         }
         
         .theme-btn {
-            padding: 10px 15px;
-            border: 2px solid #e0e0e0;
+            position: relative;
+            padding: 0;
+            border: 3px solid #e0e0e0;
             background: white;
-            border-radius: 8px;
+            border-radius: 12px;
             cursor: pointer;
-            font-size: 0.95em;
+            font-size: 0.9em;
             transition: all 0.3s ease;
+            overflow: hidden;
+            height: 120px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+        }
+        
+        .theme-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-size: cover;
+            background-position: center;
+            opacity: 0.8;
+            z-index: 1;
+        }
+        
+        .theme-btn[data-theme="roses"]::before {
+            background-image: url('/static/backgrounds/roses_2.jpg');
+        }
+        
+        .theme-btn[data-theme="sunset"]::before {
+            background-image: url('/static/backgrounds/roses_1.jpg');
+        }
+        
+        .theme-btn[data-theme="hearts"]::before {
+            background-image: url('/static/backgrounds/heart_bokeh.jpg');
+        }
+        
+        .theme-btn[data-theme="nature"]::before {
+            background-image: url('/static/backgrounds/pink_flower.jpg');
+        }
+        
+        .theme-btn[data-theme="wedding"]::before {
+            background-image: url('/static/backgrounds/hearts_sparklers.jpg');
+        }
+        
+        .theme-btn[data-theme="stars"]::before {
+            background-image: url('/static/backgrounds/heart_bokeh.jpg');
+        }
+        
+        .theme-btn::after {
+            content: attr(data-label);
+            position: relative;
+            z-index: 2;
+            padding: 8px 12px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.9) 0%, rgba(118, 75, 162, 0.9) 100%);
+            color: white;
+            font-weight: 600;
+            border-radius: 8px 8px 0 0;
+            width: 100%;
+            text-align: center;
+            font-size: 0.85em;
+            margin-top: auto;
         }
         
         .theme-btn:hover {
             border-color: #667eea;
-            background: #f9f9f9;
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.2);
+            transform: translateY(-2px);
         }
         
         .theme-btn.active {
             border-color: #667eea;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.35);
+            transform: translateY(-3px);
         }
         
         .download-section {
-            margin-top: 20px;
+            margin-top: 25px;
             display: none;
-            background: #f9f9f9;
-            padding: 20px;
-            border-radius: 8px;
+            background: linear-gradient(135deg, #f5f7ff 0%, #f9f5ff 100%);
+            padding: 25px;
+            border-radius: 12px;
+            border: 2px solid #e8e8f0;
         }
         
         .download-section.show {
@@ -254,27 +323,28 @@
         
         .download-buttons {
             display: flex;
-            gap: 10px;
+            gap: 12px;
             flex-wrap: wrap;
-            margin-top: 15px;
+            margin-top: 18px;
         }
         
         .download-btn {
             flex: 1;
-            min-width: 150px;
-            padding: 12px;
-            background: #4CAF50;
+            min-width: 140px;
+            padding: 13px;
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             cursor: pointer;
-            font-weight: 600;
+            font-weight: 700;
             transition: all 0.3s ease;
+            font-size: 0.95em;
         }
         
         .download-btn:hover {
-            background: #45a049;
             transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(76, 175, 80, 0.3);
         }
         
         .poem-preview {
@@ -295,17 +365,22 @@
         
         .footer {
             text-align: center;
-            margin-top: 30px;
-            color: #999;
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 2px solid #f0f0f0;
+            color: #888;
             font-size: 0.9em;
         }
         
         .footer a {
             color: #667eea;
             text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
         }
         
         .footer a:hover {
+            color: #764ba2;
             text-decoration: underline;
         }
     </style>
@@ -342,12 +417,12 @@
             <div class="form-group">
                 <label for="theme">Choose Background Theme <span class="heart">❤️</span></label>
                 <div class="theme-selector">
-                    <button type="button" class="theme-btn active" data-theme="roses" title="Red Roses">🌹 Roses</button>
-                    <button type="button" class="theme-btn" data-theme="sunset" title="Romantic Sunset">🌅 Sunset</button>
-                    <button type="button" class="theme-btn" data-theme="hearts" title="Heart Bokeh">💕 Hearts</button>
-                    <button type="button" class="theme-btn" data-theme="nature" title="Nature">🌿 Nature</button>
-                    <button type="button" class="theme-btn" data-theme="wedding" title="Wedding">💒 Wedding</button>
-                    <button type="button" class="theme-btn" data-theme="stars" title="Night Stars">⭐ Stars</button>
+                    <button type="button" class="theme-btn active" data-theme="roses" data-label="🌹 Roses"></button>
+                    <button type="button" class="theme-btn" data-theme="sunset" data-label="🌅 Sunset"></button>
+                    <button type="button" class="theme-btn" data-theme="hearts" data-label="💕 Hearts"></button>
+                    <button type="button" class="theme-btn" data-theme="nature" data-label="🌿 Nature"></button>
+                    <button type="button" class="theme-btn" data-theme="wedding" data-label="💒 Wedding"></button>
+                    <button type="button" class="theme-btn" data-theme="stars" data-label="⭐ Stars"></button>
                 </div>
             </div>
             

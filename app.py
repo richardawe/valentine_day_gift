@@ -91,7 +91,7 @@ def create_poem_image(poem, theme="roses"):
         bg_img = get_background_image(theme)
         bg_img = bg_img.resize((1200, 1600), Image.Resampling.LANCZOS)
         
-        overlay = Image.new('RGBA', bg_img.size, (255, 255, 255, 180))
+        overlay = Image.new('RGBA', bg_img.size, (255, 255, 255, 200))
         if bg_img.mode != 'RGBA':
             bg_img = bg_img.convert('RGBA')
         bg_img = Image.alpha_composite(bg_img, overlay)
@@ -102,31 +102,31 @@ def create_poem_image(poem, theme="roses"):
     draw = ImageDraw.Draw(bg_img)
     
     try:
-        title_font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 48)
-        poem_font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 32)
-        footer_font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Oblique.ttf", 24)
+        title_font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 56)
+        poem_font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 40)
+        footer_font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Oblique.ttf", 28)
     except:
         title_font = ImageFont.load_default()
         poem_font = ImageFont.load_default()
         footer_font = ImageFont.load_default()
     
     title = "Your AI-Generated Valentine's Gift"
-    draw.text((100, 100), title, font=title_font, fill=(255, 20, 147))
-    draw.text((100, 180), "✨ 💕 ✨", font=poem_font, fill=(255, 20, 147))
+    draw.text((100, 80), title, font=title_font, fill=(200, 20, 147))
+    draw.text((100, 160), "✨ 💕 ✨", font=poem_font, fill=(200, 20, 147))
     
     y_pos = 280
-    line_height = 60
+    line_height = 70
     
     for line in poem.split('\n'):
         if line.strip():
-            for wrapped_line in textwrap.wrap(line, width=40):
-                draw.text((100, y_pos), wrapped_line, font=poem_font, fill=(40, 40, 40))
+            for wrapped_line in textwrap.wrap(line, width=35):
+                draw.text((100, y_pos), wrapped_line, font=poem_font, fill=(20, 20, 20))
                 y_pos += line_height
         else:
             y_pos += line_height // 2
     
-    footer_y = 1500
-    draw.text((100, footer_y), FOOTER_TEXT, font=footer_font, fill=(100, 100, 100))
+    footer_y = 1520
+    draw.text((100, footer_y), FOOTER_TEXT, font=footer_font, fill=(80, 80, 80))
     
     return bg_img
 
