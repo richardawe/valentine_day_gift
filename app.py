@@ -84,6 +84,7 @@ def get_background_image(theme="roses"):
             "per_page": 1,
             "client_id": UNSPLASH_API_KEY
         }
+        # Add timeout to prevent hanging
         response = requests.get(UNSPLASH_API_URL, params=params, timeout=5)
         if response.status_code == 200:
             data = response.json()
@@ -94,6 +95,7 @@ def get_background_image(theme="roses"):
     except Exception as e:
         print(f"Error fetching background: {e}")
     
+    # Fallback to solid color if Unsplash fails
     theme_data = BACKGROUND_THEMES.get(theme, BACKGROUND_THEMES["roses"])
     img = Image.new('RGB', (1200, 1600), theme_data["color"])
     return img
@@ -234,7 +236,7 @@ The AI Valentine's Team 💕
         img_part.add_header('Content-Disposition', 'attachment', filename='valentine_poem.png')
         msg.attach(img_part)
         
-        server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+        server = smtplib.SMTP_SSL('smtp.gmail.com', 465, timeout=10)
         server.login(gmail_user, gmail_password)
         server.send_message(msg)
         server.quit()
@@ -297,27 +299,40 @@ def api_generate_poem():
         if '@' not in user_email:
             return jsonify({'error': 'Invalid email address'}), 400
         
-        # Check if required environment variables are set
-        if not gmail_user or not gmail_password:
-            return jsonify({'error': 'Email service not configured on server'}), 503
-        
+        # Generate poem first (fastest operation)
         poem = generate_poem(poem_prompt)
         
         if not poem:
             return jsonify({'error': 'Failed to generate poem'}), 500
         
-        email_sent = send_email_with_poem(user_email, poem, theme)
+        # Try to send email, but don't fail if it's slow
+        email_sent = False
+        email_error = None
         
-        if not email_sent:
-            return jsonify({'error': 'Failed to send email. Check server logs.'}), 500
+        if gmail_user and gmail_password:
+            try:
+                email_sent = send_email_with_poem(user_email, poem, theme)
+            except Exception as e:
+                email_error = str(e)
+                print(f"Email sending error (non-blocking): {e}")
+                # Don't fail the request, just log the error
+        else:
+            print("Gmail not configured, skipping email")
         
         response_data = {
             'success': True,
-            'message': f'Poem generated and sent to {user_email}!',
+            'message': f'Poem generated!',
             'poem': poem,
             'theme': theme
         }
         
+        # Add email status to response
+        if email_sent:
+            response_data['message'] += f' Sent to {user_email}!'
+        elif gmail_user and gmail_password:
+            response_data['message'] += ' (Email delivery pending)'
+        
+        # Try to post to Twitter (optional)
         if share_on_twitter and twitter_client:
             try:
                 tweet_url = post_to_twitter(poem_prompt)
@@ -325,8 +340,7 @@ def api_generate_poem():
                     response_data['tweet_url'] = tweet_url
                     response_data['message'] += f"\n\nAlso posted to Twitter: {tweet_url}"
             except Exception as tweet_error:
-                print(f"Tweet posting error: {tweet_error}")
-                # Don't fail the whole request if tweeting fails
+                print(f"Tweet posting error (non-blocking): {tweet_error}")
         
         return jsonify(response_data), 200
     

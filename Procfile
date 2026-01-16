@@ -1,1 +1,1 @@
-web: gunicorn -w 4 -b 0.0.0.0:$PORT app:app
+web: gunicorn -w 2 -b 0.0.0.0:$PORT --timeout 120 --max-requests 50 app:app
